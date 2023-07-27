@@ -10,7 +10,7 @@ public class TypFinderEnum<T extends Enum<T>> extends AbstractSuffixSearch<T>{
     @Override
     protected void buildData() {
         for(T t : getTypeClass().getEnumConstants()) {
-            add(t.name());
+            add(t.name().charAt(0) + t.name().substring(1).toLowerCase());
         }
     }
 
@@ -21,7 +21,7 @@ public class TypFinderEnum<T extends Enum<T>> extends AbstractSuffixSearch<T>{
 
     @Override
     public String findBy(T filter) {
-        return getSuffixes().stream().filter(s -> s.contains(filter.toString())).findFirst().orElse(null);
+        return getSuffixes().stream().filter(s -> s.toLowerCase().contains(filter.name().toLowerCase())).findFirst().orElse(null);
     }
 
 

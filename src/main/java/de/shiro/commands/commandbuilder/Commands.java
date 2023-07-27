@@ -1,16 +1,14 @@
 package de.shiro.commands.commandbuilder;
 
 import de.shiro.commands.action.ActionCommands;
-import de.shiro.commands.action.ActionFacade;
-import de.shiro.commands.chunk.ChunkCommands;
-import de.shiro.commands.commandbuilder.CommandsInternal;
-import de.shiro.commands.pos.PosCommands;
+import de.shiro.commands.record.RecordCommands;
 import lombok.Getter;
 
 public enum Commands {
-    POS(new PosCommands()),
-    ACTION(new ActionCommands(new ActionFacade())),
-    CHUNK(new ChunkCommands());
+    ACTION(new ActionCommands()),
+    RC(new RecordCommands()),
+
+    ;
     @Getter
     private final CommandsInternal commandsInternal;
 

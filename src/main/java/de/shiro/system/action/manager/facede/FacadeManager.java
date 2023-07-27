@@ -1,24 +1,20 @@
 package de.shiro.system.action.manager.facede;
 
-import de.shiro.Core;
+import de.shiro.Record;
 import de.shiro.system.action.manager.ActionFuture;
 import de.shiro.system.action.manager.ActionType;
 import de.shiro.system.action.manager.builder.AbstractAction;
 import de.shiro.system.config.AbstractActionConfig;
-import de.shiro.utlits.Config;
-import de.shiro.utlits.Log;
+import de.shiro.utlits.log.Log;
+import de.shiro.utlits.log.TraceHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.scheduler.BukkitRunnable;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 public class FacadeManager {
 
@@ -33,42 +29,48 @@ public class FacadeManager {
 
 
 
-    public <R,U extends AbstractAction<R,?>> ActionFuture<R, U> addAction(AbstractActionConfig config, Enum<?> actionName) {
+    public <R,U extends AbstractAction<R,? extends AbstractActionConfig>> ActionFuture<R, U> addAction(AbstractActionConfig config, Enum<?> actionName) {
         if (config.getActionType() == ActionType.ASYNC) {
-            if (Bukkit.isPrimaryThread())
-                Log.error("Thread is ín Main Thread. RunnableAction must be executed in a separate thread. Threat will be created automatically.");
-            return addAsyncAction(config, actionName);
+           return addAsyncAction(config, actionName);
         }
         return addSyncAction(config, actionName);
     }
 
-    public <R,U extends AbstractAction<R,?>> ActionFuture<R, U> addAsyncAction(AbstractActionConfig config, Enum<?> actionName) {
-        if (Bukkit.isPrimaryThread()){
-            Supplier<ActionFuture<R,U>> supplier = () -> getActionFuture(config, actionName);
-            CompletableFuture<ActionFuture<R,U>> future = CompletableFuture.supplyAsync(supplier, Config.getService());
-            if(future.isDone()) return future.join();
-            return null;
-        } else
-            return getActionFuture(config,actionName);
+    public <R,U extends AbstractAction<R,? extends AbstractActionConfig>> ActionFuture<R, U> addAsyncAction(AbstractActionConfig config, Enum<?> actionName)
+    {
+        ActionFuture<R, U> future = getActionFuture(config,actionName);
+        if(future == null) return null;
+        if (Bukkit.isPrimaryThread()) Bukkit.getScheduler().runTaskAsynchronously(Record.getInstance(), future);
+        else future.execute();
+        return future;
     }
 
-    public <R,U extends AbstractAction<R,?>> ActionFuture<R, U> addSyncAction(AbstractActionConfig config,Enum<?> actionName)  {
-        return getActionFuture(config,actionName);
+    public <R,U extends AbstractAction<R,? extends AbstractActionConfig>> ActionFuture<R, U> addSyncAction(AbstractActionConfig config,Enum<?> actionName)  {
+        ActionFuture<R, U> future = getActionFuture(config,actionName);
+        if(future == null) return null;
+        if(Bukkit.isPrimaryThread()) future.execute();
+        else Bukkit.getScheduler().runTask(Record.getInstance(), future::execute);
+        return future;
     }
 
-    private  <R,U extends AbstractAction<R,?>> ActionFuture<R, U> getActionFuture(AbstractActionConfig config, Enum<?> actionName) {
+    private  <R,U extends AbstractAction<R,? extends AbstractActionConfig>> ActionFuture<R, U> getActionFuture(AbstractActionConfig config, Enum<?> actionName) {
         U ob = null;
         try {
             ob = (U) findObject(config,actionName);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             Log.error("Could not create Action " + actionName.toString());
-            Log.error(e.getMessage());
-            config.getISession().sendSessionMessage(ChatColor.RED + "Could not create Action " + ChatColor.DARK_RED + actionName);
+
+            TraceHelper.sendPlayerStackTrace(config.getISession().getSessionPlayer(), e.getStackTrace());
+            for(StackTraceElement element : e.getStackTrace()){
+                Log.error(element);
+            }
+
+
+
+            //config.getISession().sendSessionMessage(ChatColor.RED + "Could not create Action " + ChatColor.DARK_RED + actionName);
         }
         if(ob == null) return null;
-        ActionFuture<R, U> actionFuture = new ActionFuture<>(ob);
-        actionFuture.execute();
-        return actionFuture;
+        return new ActionFuture<>(ob);
     }
 
 

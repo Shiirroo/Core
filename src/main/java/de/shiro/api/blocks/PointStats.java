@@ -1,6 +1,8 @@
 package de.shiro.api.blocks;
 
-public class PointStats {
+import java.io.Serializable;
+
+public class PointStats implements Serializable {
 
     Point3 minPoint = Point3.MAX;
     Point3 maxPoint = Point3.MIN;
@@ -14,7 +16,7 @@ public class PointStats {
     }
 
     public PointStats consume(ChunkPoint chunkPoint){
-        return consumeMin(chunkPoint.getMin()).consumeMax(chunkPoint.getMax());
+        return consumeMin(chunkPoint.getWorldMin()).consumeMax(chunkPoint.getWorldMax());
     }
 
    public PointStats consumeMin(Point3 point){

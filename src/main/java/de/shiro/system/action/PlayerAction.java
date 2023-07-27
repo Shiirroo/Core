@@ -1,6 +1,7 @@
 package de.shiro.system.action;
 
 import de.shiro.system.action.manager.ActionFuture;
+import de.shiro.system.config.ISession;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,13 @@ public class PlayerAction {
 
     @Getter @Setter
     private Queue<ActionFuture<?,?>> actionFutureQueue = new LinkedList<>();
+
+    @Getter
+    private final ISession iSession;
+
+    public PlayerAction(ISession iSession){
+        this.iSession = iSession;
+    }
 
 
     public void reset() {

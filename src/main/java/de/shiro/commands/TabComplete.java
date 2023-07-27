@@ -22,7 +22,7 @@ public class TabComplete implements TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] args){
         if(sender instanceof Player player) {
-            if (args.length == 1) return commandAPI.getSubCommands();
+            if (args.length == 1) return commandAPI.getSubCommandsString();
             else if (args.length > 1)
                 return commandAPI.getCommands(ISession.getOrAddISession(player.getUniqueId(), player.getName()), args);
             }

@@ -1,21 +1,25 @@
 package de.shiro.api.blocks;
 
+import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.inventory.ItemStack;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class GameBlock {
+public class GameBlock implements Serializable {
 
     public static final String BLOCK_DATA_STRING_AIR = Bukkit.createBlockData(Material.AIR).toString();
 
-    @Getter
+    @Getter @Expose
     private final Point3 position;
 
-    @Getter
+    @Getter @Expose
     private final String blockData;
 
     public GameBlock() {
@@ -30,6 +34,11 @@ public class GameBlock {
     public GameBlock(Point3 position, String blockData) {
         this.position = position;
         this.blockData = blockData;
+    }
+
+    public GameBlock(Point3 position, Block block) {
+        this.position = position;
+        this.blockData = block.getBlockData().getAsString();
     }
 
     public static GameBlock of(int x, int y, int z, String blockData) {

@@ -1,7 +1,5 @@
 package de.shiro.utlits.finder;
 
-import org.checkerframework.checker.units.qual.A;
-
 import java.util.List;
 
 public class TypFinderString<T> extends AbstractSuffixSearch<T> {

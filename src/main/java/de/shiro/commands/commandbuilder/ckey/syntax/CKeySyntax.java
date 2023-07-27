@@ -8,11 +8,14 @@ import de.shiro.system.action.manager.ActionFuture;
 import de.shiro.system.config.ISession;
 import de.shiro.utlits.finder.AbstractSuffixSearch;
 import de.shiro.utlits.finder.Finder;
+import de.shiro.utlits.log.LogState;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.generator.WorldInfo;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public enum CKeySyntax {
@@ -22,14 +25,17 @@ public enum CKeySyntax {
     WORLDS(getWorlds(), false),
     MATERIAL( getMaterial(), false),
     WORLDTYPE( getWorldType(), false),
-    MANAGEPOS( getManagePos(), false),
-    POSLIST( getPosList(), true),
     VISIBILITY(getVisibility(),false),
     POINT3(getPoint3(),false),
     PAGE(getPage(),false),
-    ACTIONS(getActions(),true);
+    ACTIONS(getActions(),true),
+    TIMES(getTimeList(),false),
+    RANGES(getRanges(),false),
+    LOGSTATES(getLogState(), false),
+    RECORD(getRecord(), false);
 
 
+    ;
 
     @Getter
     private final CKeySyntaxBuilder syntax;
@@ -65,13 +71,15 @@ public enum CKeySyntax {
         return (iSession, arguments) -> findList(Finder.worldTypeFinder, arguments.getTypingCommand());
     }
 
-    public static CKeySyntaxBuilder getManagePos(){
-        return (iSession, arguments) ->  findList(Finder.manageList(iSession), arguments.getTypingCommand());
+    public static CKeySyntaxBuilder getLogState(){
+        return (iSession, arguments) -> findList(Finder.logStateFinder, arguments.getTypingCommand());
     }
 
-    public static CKeySyntaxBuilder getPosList(){
-        return (iSession, arguments) ->  findList(Finder.posList(iSession), arguments.getTypingCommand());
+    public static CKeySyntaxBuilder getRecord(){
+        return (iSession, arguments) -> findList(Finder.recordTypeFinder, arguments.getTypingCommand());
     }
+
+
 
     public static CKeySyntaxBuilder getVisibility(){
         return (iSession, arguments) -> formatEnum(de.shiro.api.types.Visibility.values());
@@ -85,6 +93,16 @@ public enum CKeySyntax {
     }
 
 
+    public static CKeySyntaxBuilder getTimeList(){
+        return (iSession, arguments) ->  List.of("1m","15s","0s","3w4d5h","1h","15m");
+    }
+
+    public static CKeySyntaxBuilder getRanges(){
+        return (iSession, arguments) ->  List.of("1","5","15","40","50");
+    }
+
+
+
     public static CKeySyntaxBuilder getPage(){
         return CKeySyntax::pageList;
     }
@@ -94,7 +112,7 @@ public enum CKeySyntax {
         List<String> pages = new ArrayList<>();
         CKey key = commandArguments.getPageKeyIndicator(CKey.Page);
         if(key == null) return pages;
-        String pos = commandArguments.getIfExists(iSession, key);
+        Object pos = commandArguments.getIfExists(iSession, key);
         List<String> list = key.getCKeySyntax().getSyntax().perform(iSession, commandArguments.removeLast());
         if(pos == null) return pages;
         ChatPage<String> chatPage = new ChatPage<>(list);

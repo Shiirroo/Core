@@ -1,16 +1,13 @@
 package de.shiro.utlits.finder;
 
-import de.shiro.actionregister.pos.PosManager;
-import de.shiro.api.blocks.WorldPos;
+import de.shiro.Record;
+import de.shiro.record.RecordTyp;
 import de.shiro.system.config.ISession;
-import de.shiro.utlits.Config;
+import de.shiro.utlits.log.LogState;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemFlag;
-
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 public class Finder {
 
@@ -31,14 +28,9 @@ public class Finder {
     public static AbstractSuffixSearch<Difficulty> difficultyFinder = new TypFinderEnum<>(Difficulty.class);
 
     public static AbstractSuffixSearch<World.Environment> environmentFinder = new TypFinderEnum<>(World.Environment.class);
+    public static AbstractSuffixSearch<LogState> logStateFinder = new TypFinderEnum<>(LogState.class);
+    public static AbstractSuffixSearch<RecordTyp> recordTypeFinder = new TypFinderEnum<>(RecordTyp.class);
 
-    public static AbstractSuffixSearch<String> posList(ISession iSession){
-       return new TypFinderString<>(new PosManager(iSession).getWorldPosList().stream().map(WorldPos::getPosName).toList());
-    };
-
-    public static AbstractSuffixSearch<String> manageList(ISession iSession){
-        return new TypFinderString<>(new PosManager(iSession).hasManagePerm());
-    };
 
 
 }

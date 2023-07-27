@@ -1,27 +1,31 @@
 package de.shiro.api.blocks;
 
+import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 
+import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class ChunkPoint {
+public class ChunkPoint  implements Serializable {
 
-    @Getter
-    private final Point2 min = new Point2();
+    @Getter @Expose
+    private final Point2 worldMin = new Point2();
 
-    @Getter
-    private final Point2 max = new Point2(15, 15);
+    @Getter @Expose
+    private final Point2 worldMax = new Point2(15, 15);
 
-    @Getter
+    @Getter @Expose
     private final Point2 chunkPoint;
 
-    @Getter
+    @Getter @Expose
     private boolean border = false;
 
 
@@ -37,8 +41,8 @@ public class ChunkPoint {
 
     public ChunkPoint(Point2 chunkPoint) {
         this.chunkPoint = chunkPoint;
-        min.add(chunkPoint.getX() * 16, chunkPoint.getZ() * 16);
-        max.add(chunkPoint.getX() * 16, chunkPoint.getZ() * 16);
+        worldMin.add(chunkPoint.getX() * 16, chunkPoint.getZ() * 16);
+        worldMax.add(chunkPoint.getX() * 16, chunkPoint.getZ() * 16);
     }
 
 
@@ -74,11 +78,23 @@ public class ChunkPoint {
         return Optional.of(world.getChunkAt(getX(), getZ())).orElse(null).getBlock(0,0,0).getLocation();
     }
 
+    public ChunkBlocks getChunkBlocks(World world){
+        ChunkBlocks chunkBlocks = new ChunkBlocks(this);
+        for (int x = worldMin.getX(); x <= worldMax.getX(); x++) {
+            for (int z = worldMin.getZ(); z <= worldMin.getZ() ; z++) {
+                int hightesBlock = world.getHighestBlockYAt(x, z);
+                    for (int y = 0; y <= hightesBlock; y++) {
+                        chunkBlocks.addBlock(new GameBlock(x, y, z, world.getBlockAt(x, y, z).getBlockData().getAsString()));
+                }
+            }
+        }
+        return chunkBlocks;
+    }
+
+
     public Location getLocation(World world){
-        CompletableFuture<Chunk> chunkAtAsync = world.getChunkAtAsync(getX(), getZ());
-        CompletableFuture<Location> locationCompletableFuture =  chunkAtAsync.thenApplyAsync(
-                chunk -> chunk.getBlock(this.getMiddlePoint().getX(), this.getMiddlePoint().getY(), this.getMiddlePoint().getZ()).getLocation());
-        return locationCompletableFuture.join();
+        Chunk chunk = world.getChunkAt(getX(), getZ());
+        return chunk.getBlock(this.getMiddlePoint().getX(), this.getMiddlePoint().getY(), this.getMiddlePoint().getZ()).getLocation();
     }
 
     public Point3 getMiddlePoint() {
@@ -100,9 +116,18 @@ public class ChunkPoint {
         return new ChunkPoint(this.chunkPoint.getX()+ otherPoint.getX(), this.chunkPoint.getZ()+ otherPoint.getZ());
     }
 
+    public ChunkPoint add(int x, int z) {
+        return new ChunkPoint(this.chunkPoint.getX()+ x, this.chunkPoint.getZ()+ z);
+    }
+    public ChunkPoint subtract(int x, int z) {
+        return new ChunkPoint(this.chunkPoint.getX()- x, this.chunkPoint.getZ()- z);
+    }
+
     public ChunkPoint subtract(ChunkPoint otherPoint) {
         return new ChunkPoint(this.chunkPoint.getX()- otherPoint.getX(), this.chunkPoint.getZ()- otherPoint.getZ());
     }
+
+
 
 
     @Override
@@ -127,8 +152,8 @@ public class ChunkPoint {
         return "ChunkPoint{" +
                 "chunkPoint=" + chunkPoint +
                 ", border=" + border +
-                ", min=" + min +
-                ", max=" + max +
+                ", worldMin=" + worldMin +
+                ", worldMax=" + worldMax +
                 '}';
     }
 
@@ -141,23 +166,23 @@ public class ChunkPoint {
     }
 
     public Integer volume() {
-        return (max.getX() - min.getX() + 1) * (max.getZ() - min.getZ() + 1);
+        return (worldMax.getX() - worldMin.getX() + 1) * (worldMax.getZ() - worldMin.getZ() + 1);
     }
 
     public Point2 getPoint1() {
-        return new Point2(min.getX(), min.getZ());
+        return new Point2(worldMin.getX(), worldMin.getZ());
     }
 
     public Point2 getPoint2() {
-        return new Point2(max.getX(), min.getZ());
+        return new Point2(worldMax.getX(), worldMin.getZ());
     }
 
     public Point2 getPoint3() {
-        return new Point2(max.getX(), max.getZ());
+        return new Point2(worldMax.getX(), worldMax.getZ());
     }
 
     public Point2 getPoint4() {
-        return new Point2(min.getX(), max.getZ());
+        return new Point2(worldMin.getX(), worldMax.getZ());
     }
 
     public Point3 getPoint1(int y) {

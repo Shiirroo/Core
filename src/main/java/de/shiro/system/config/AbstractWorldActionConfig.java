@@ -1,7 +1,6 @@
 package de.shiro.system.config;
 
 import lombok.Getter;
-import org.bukkit.persistence.PersistentDataType;
 
 public class AbstractWorldActionConfig extends AbstractActionConfig {
 

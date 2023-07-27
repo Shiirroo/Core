@@ -1,11 +1,9 @@
-name: Core
+name: Record
 version: '${project.version}'
-main: de.shiro.Core
+main: de.shiro.Record
 api-version: 1.19
 authors: [ Shiirroo ]
-description: de.shiro.Core
+description: de.shiro.Record
 commands:
-  pos:
-  chunk:
+  rc:
   action:
-

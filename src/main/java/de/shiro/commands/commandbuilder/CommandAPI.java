@@ -1,22 +1,18 @@
 package de.shiro.commands.commandbuilder;
 
 
-import de.shiro.Core;
+import de.shiro.Record;
 import de.shiro.commands.commandbuilder.ckey.CKey;
 import de.shiro.commands.commandbuilder.ckey.syntax.CKeySyntax;
 import de.shiro.system.config.ISession;
-import de.shiro.utlits.Log;
+import de.shiro.utlits.log.Log;
 import lombok.Getter;
 import org.bukkit.command.CommandSender;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-public class CommandAPI {
+public class CommandAPI  {
     @Getter
     private final Commands command;
 
@@ -29,7 +25,7 @@ public class CommandAPI {
     }
 
     public String getPermission() {
-        return (Core.getInstance().getName() +".command." + command.getName()).toLowerCase();
+        return (Record.getInstance().getName() +".command." + command.getName()).toLowerCase();
     }
 
 
@@ -49,7 +45,7 @@ public class CommandAPI {
     }
 
 
-    public List<String> getSubCommands() {
+    public List<String> getSubCommandsString() {
         List<String> commands = new ArrayList<>();
         for (Command command : subCommands) {
             commands.add(command.aliases());
@@ -111,13 +107,9 @@ public class CommandAPI {
         Optional<Method> optionalMethod = Arrays.stream(commandsInternal.getClass().getDeclaredMethods()).filter(method -> method.getName().equalsIgnoreCase(commandName)).findFirst();
         if(optionalMethod.isEmpty()) return false;
         Method method = optionalMethod.get();
-        try {
-            method.invoke( commandsInternal, iSession, sender, new CommandArguments(args, c));
-            return true;
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            return false;
-        }
+        CommandThread thread = new CommandThread(method,commandsInternal, iSession, sender, new CommandArguments(args, c));
+        thread.start();
+        return true;
     }
 
 }

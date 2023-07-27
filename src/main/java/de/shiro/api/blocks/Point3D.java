@@ -1,20 +1,21 @@
 package de.shiro.api.blocks;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Point3D {
+public class Point3D implements Serializable {
 
-    @Getter @Setter
+    @Getter @Setter @Expose
     private double x;
-    @Getter @Setter
+    @Getter @Setter @Expose
     private double y;
-    @Getter @Setter
+    @Getter @Setter @Expose
     private double z;
 
     public Point3D() {
@@ -33,11 +34,17 @@ public class Point3D {
         this.z = otherPoint.z;
     }
 
+    public Point3D(Point3 point3) {
+        this.x = point3.getX();
+        this.y = point3.getY();
+        this.z = point3.getZ();
+    }
+
     public Point3D(Location location) {
         this( location.getX(),  location.getY(),  location.getZ());
     }
 
-    @JsonIgnore
+
     public ChunkPoint getChunkPoint() {
         return new ChunkPoint((int) x & 0x000F, (int) z & 0x000F);
     }
@@ -61,15 +68,16 @@ public class Point3D {
 
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Point3 point3)) return false;
-        return Double.compare(point3.getX(), getX()) == 0 && Double.compare(point3.getY(), getY()) == 0 && Double.compare(point3.getZ(), getZ()) == 0;
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        Point3D point3D = (Point3D) object;
+        return Double.compare(x, point3D.x) == 0 && Double.compare(y, point3D.y) == 0 && Double.compare(z, point3D.z) == 0;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getX(), getY(), getZ());
+        return Objects.hash(x, y, z);
     }
 
     public int compareTo(Point3D otherPoint) {

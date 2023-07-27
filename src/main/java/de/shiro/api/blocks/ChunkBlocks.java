@@ -1,15 +1,17 @@
 package de.shiro.api.blocks;
 
+import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import org.bukkit.block.data.BlockData;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class ChunkBlocks {
+public class ChunkBlocks implements Serializable {
 
-    @Getter
+    @Getter @Expose
     private final List<GameBlock> blocks = new ArrayList<>();
-    @Getter
+    @Getter @Expose
     private ChunkPoint chunkPoint = new ChunkPoint();
 
     public ChunkBlocks(Set<GameBlock> blocks, ChunkPoint chunkPoint) {

@@ -14,7 +14,9 @@ public class ActionCookies {
     private final UUID actionId = UUID.randomUUID();
 
     @Getter
-    private Long startTime = System.currentTimeMillis();
+    private final Long createTime = System.currentTimeMillis();
+    @Getter
+    private Long startTime;
 
     @Getter @Setter
     private Long finishedTime = 0L;
@@ -22,14 +24,30 @@ public class ActionCookies {
     @Setter
     private Boolean subAction = false;
 
+    @Getter
+    private final boolean skipQue;
+
+
     @Getter @Setter
     private LinkedHashSet<ActionFuture<?,?>> subActions = new LinkedHashSet<>();
+
+
+    public ActionCookies(){
+        this.skipQue = false;
+    }
+
+    public ActionCookies(Boolean skipQue){
+        this.skipQue = skipQue;
+    }
+
+
+
 
     public boolean isFinished() {
         return getFinishedTime() != 0L;
     }
 
-    public void updateStartTime() {
+    public void setStartTime() {
         setStartTime(System.currentTimeMillis());
     }
 
@@ -78,6 +96,18 @@ public class ActionCookies {
         return this.subAction;
     }
 
+    @Override
+    public String toString() {
+        return "ActionCookies{" +
+                "actionId=" + actionId +
+                ", createTime=" + createTime +
+                ", startTime=" + startTime +
+                ", finishedTime=" + finishedTime +
+                ", subAction=" + subAction +
+                ", skipQue=" + skipQue +
+                ", subActions=" + subActions +
+                '}';
+    }
 
     @Override
     public int hashCode() {

@@ -1,14 +1,17 @@
 package de.shiro.api.blocks;
 
+import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-public class Point2 {
+import java.io.Serializable;
 
-    @Getter
+public class Point2  implements Serializable {
+
+    @Getter @Expose
     private int x;
-    @Getter
+    @Getter @Expose
     private int z;
 
 

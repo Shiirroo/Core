@@ -9,10 +9,16 @@ public class AbstractActionConfig {
     private final ISession iSession;
 
     @Getter
-    private final ActionType actionType = ActionType.SYNC;
+    private final ActionType actionType;
 
     public AbstractActionConfig(ISession iSession) {
         this.iSession = iSession;
+        this.actionType = ActionType.ASYNC;
+    }
+
+    public AbstractActionConfig(ISession iSession, ActionType actionType) {
+        this.iSession = iSession;
+        this.actionType = actionType;
     }
 
     public static AbstractActionConfig of(ISession iSession) {
@@ -25,6 +31,8 @@ public class AbstractActionConfig {
                 ", actionType=" + getActionType() +
                 '}';
     }
+
+
 
     @Override
     public boolean equals(Object obj) {

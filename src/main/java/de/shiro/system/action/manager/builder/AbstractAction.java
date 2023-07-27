@@ -1,52 +1,54 @@
 package de.shiro.system.action.manager.builder;
 
-import de.shiro.Core;
+import de.shiro.Record;
+import de.shiro.manager.Manager;
 import de.shiro.system.action.ActionCookies;
 import de.shiro.system.action.manager.ActionFuture;
 import de.shiro.system.action.manager.ActionResult;
+import de.shiro.system.action.manager.facede.FacadeAction;
 import de.shiro.system.config.AbstractActionConfig;
 import de.shiro.system.config.ISession;
 import lombok.Getter;
 import lombok.Setter;
-import org.checkerframework.checker.units.qual.A;
 
-import java.util.concurrent.FutureTask;
-
-public class AbstractAction<R,C extends AbstractActionConfig>  {
+public abstract class AbstractAction<R,C extends AbstractActionConfig> {
 
 
     @Getter
     private final C config;
 
     @Getter @Setter
-    private ActionCookies cookies = new ActionCookies();
+    private final ActionCookies cookies;
 
 
     public AbstractAction(C config) {
         this.config = config;
+        this.cookies = new ActionCookies();
+
+    }
+
+    public AbstractAction(C config, boolean skipQue) {
+        this.config = config;
+        this.cookies =  new ActionCookies(skipQue);
     }
 
 
-
-    public ActionResult<R> execute() throws Exception {
-        return null;
-    }
+    public abstract ActionResult<R> execute() throws Exception;
 
 
-    public static <R,C extends AbstractActionConfig> AbstractAction<R,C> of(C config) {
-        return new AbstractAction<>(config);
-    }
 
-    protected <RR, AA extends AbstractAction<RR,?>> ActionFuture<RR,AA> newActionFuture(AA action) {
+    protected <RR, AA extends AbstractAction<RR,? extends AbstractActionConfig>> ActionFuture<RR,AA> newActionFuture(AA action) {
         if(action == null) return null;
         return new ActionFuture<>(action);
     }
 
-    protected <RR, AA extends AbstractAction<RR,?>> ActionFuture<RR,AA> addSubAction(AA action) {
-        if(action == null) return null;
+    protected <RR, AA extends AbstractAction<RR,? extends AbstractActionConfig>> ActionFuture<RR,AA> addSubAction(AA action) {
+        if (action == null) return null;
+        if (!action.getConfig().getActionType().equals(this.getConfig().getActionType())) return null;
         action.getCookies().setSubAction(true);
-        ActionFuture<RR,AA> actionFuture = ActionFuture.of(action);
+        ActionFuture<RR, AA> actionFuture = ActionFuture.of(action);
         getCookies().getSubActions().add(actionFuture);
+        actionFuture.execute();
         return actionFuture;
     }
 
@@ -58,12 +60,24 @@ public class AbstractAction<R,C extends AbstractActionConfig>  {
         return false;
     }
 
+    public Manager getManager(){
+        return Record.getManager();
+    }
+
     public ISession getISession() {
         return config.getISession();
     }
 
     public String getExecutorName() {
         return config.getISession().getExecutorName();
+    }
+
+    @Override
+    public String toString() {
+        return "AbstractAction{" +
+                "config=" + config +
+                ", cookies=" + cookies +
+                '}';
     }
 
 }

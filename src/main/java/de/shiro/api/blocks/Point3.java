@@ -1,24 +1,26 @@
 package de.shiro.api.blocks;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Point3 {
+public class Point3  implements Serializable {
 
     public static final Point3 ZERO = new Point3(0, 0, 0);
     public static final Point3 MAX = new Point3(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
     public static final Point3 MIN = new Point3(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
 
-    @Getter @Setter
+    @Getter @Setter @Expose
     private int x;
-    @Getter @Setter
+    @Getter @Setter @Expose
     private int y;
-    @Getter @Setter
+    @Getter @Setter @Expose
     private int z;
 
     public Point3() {
@@ -38,9 +40,8 @@ public class Point3 {
     public Point3(Point3 point3) {
         this( point3.getX(), point3.getY(), point3.getZ());
     }
-    @JsonIgnore
     public ChunkPoint getChunkPoint() {
-        return new ChunkPoint((int) x & 0x000F, (int) z & 0x000F);
+        return new ChunkPoint(x & 0x000F, z & 0x000F);
     }
 
 
@@ -62,15 +63,16 @@ public class Point3 {
 
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Point3 point3)) return false;
-        return Double.compare(point3.getX(), getX()) == 0 && Double.compare(point3.getY(), getY()) == 0 && Double.compare(point3.getZ(), getZ()) == 0;
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        Point3 point3 = (Point3) object;
+        return x == point3.x && y == point3.y && z == point3.z;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getX(), getY(), getZ());
+        return Objects.hash(x, y, z);
     }
 
     public int compareTo(Point3 otherPoint) {
@@ -101,8 +103,21 @@ public class Point3 {
         return new Point3(Math.max(this.x, otherPoint.x), Math.max(this.y, otherPoint.y), Math.max(this.z, otherPoint.z));
     }
 
+    public Point3 getHeightsBlock(World world){
+        return new Point3(world.getHighestBlockAt(getX(), getZ()).getLocation());
+    }
+
+    public Point3D toPoint3D(){
+        return new Point3D(this);
+    }
+
+    @Override
     public String toString() {
-        return "(x:" + x + ",y:" + y + ",z:" + z + ")";
+        return "Point3{" +
+                "x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                '}';
     }
 
     public String toChatString() {
@@ -113,6 +128,7 @@ public class Point3 {
     public Location toLocation(World world) {
         return new Location(world, x, y, z);
     }
+
 
 
 }

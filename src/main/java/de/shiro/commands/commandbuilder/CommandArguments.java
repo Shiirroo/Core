@@ -4,12 +4,11 @@ import de.shiro.commands.commandbuilder.ckey.CKey;
 import de.shiro.commands.commandbuilder.ckey.CKeyClasses;
 import de.shiro.commands.commandbuilder.ckey.CommandSeparator;
 import de.shiro.system.config.ISession;
-import de.shiro.utlits.Log;
+import de.shiro.utlits.log.Log;
 import lombok.Getter;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Optional;
 
 public class CommandArguments {
@@ -50,7 +49,7 @@ public class CommandArguments {
     }
 
 
-    public <T> T getIfExists(ISession iSession, CKey key, T defaultValue) {
+    public <T> T getIfExists(CKey key, T defaultValue) {
         Optional<CKey> optional = Arrays.stream(command.syntax()).filter(c -> c.equals(key)).findFirst();
         if (optional.isPresent()) {
             if(key.getCKeyClasses().equals(CKeyClasses.ENUM)) return getConstructorEnum(key, defaultValue);
@@ -59,6 +58,7 @@ public class CommandArguments {
         }
         return defaultValue;
     }
+
 
     public <T> T getIfExists(ISession iSession, CKey key, T defaultValue, boolean forceInput) {
         Optional<CKey> optional = Arrays.stream(command.syntax()).filter(c -> c.equals(key)).findFirst();
@@ -74,15 +74,40 @@ public class CommandArguments {
         return defaultValue;
     }
 
-    public <T> T getIfExists(ISession iSession, CKey key, Enum<?>... defaultValue) {
+    public Integer getIfExists(CKey key, Integer defaultInput ,Integer min, Integer max ) {
+        Optional<CKey> optional = Arrays.stream(command.syntax()).filter(c -> c.equals(key)).findFirst();
+        if (optional.isPresent()) {
+            Object[] objects = findParameters(key);
+            if(objects != null) {
+                Integer i = getConstructor(key, defaultInput, objects);
+                if(i < min) return min;
+                if(i > max) return max;
+                return i;
+            }
+        }
+        return defaultInput;
+    }
+
+    public <T extends Enum<T>> T getIfExists(CKey key, T... defaultValue) {
         Optional<CKey> optional = Arrays.stream(command.syntax()).filter(c -> c.equals(key)).findFirst();
         if (optional.isPresent()) {
             if(key.getCKeyClasses().equals(CKeyClasses.ENUM))
                 return getConstructorEnumValue(key, defaultValue);
 
         }
-        return (T) null;
+        return null;
     }
+
+    public <T extends Enum<T>> T getIfExists(CKey key, T defaultEnum, T... defaultValue) {
+        Optional<CKey> optional = Arrays.stream(command.syntax()).filter(c -> c.equals(key)).findFirst();
+        if (optional.isPresent()) {
+            if(key.getCKeyClasses().equals(CKeyClasses.ENUM))
+                return getConstructorEnumValue(key, defaultEnum, defaultValue);
+
+        }
+        return defaultEnum;
+    }
+
 
 
     public boolean forceInput(ISession iSession, CKey key, Object... objects) {
@@ -142,7 +167,9 @@ public class CommandArguments {
             if(args.length <= index) return defaultValue;
             if(key.getCKeyClasses().getCommandSeparator().equals(CommandSeparator.NO_SEPARATOR)) {
                 Optional<?> enumOptional = Arrays.stream(enumValue.getDeclaringClass().getEnumConstants()).filter(e -> e.name().equalsIgnoreCase(args[index])).findFirst();
-                if(enumOptional.isPresent()) return (T) enumOptional.get();
+                if(enumOptional.isPresent()){
+                    return (T) enumOptional.get();
+                }
             }
         }
         return defaultValue;
@@ -158,14 +185,28 @@ public class CommandArguments {
         return null;
     }
 
-    private <T> T getConstructorEnumValue(CKey key, Enum<?>... defaultValue) {
+    private <T extends Enum<T>> T getConstructorEnumValue(CKey key, T... defaultValue) {
         int index = Arrays.asList(command.syntax()).indexOf(key) + 1;
         if(args.length <= index) return null;
         if(key.getCKeyClasses().getCommandSeparator().equals(CommandSeparator.NO_SEPARATOR)) {
-            Optional<Enum<?>> optional = Arrays.stream(defaultValue).filter(e ->  e.name().equalsIgnoreCase(args[index])).findFirst();
-            return (T) optional.orElse(null);
+            Optional<T> optional = Arrays.stream(defaultValue).filter(e ->  e.name().equalsIgnoreCase(args[index])).findFirst();
+            if(optional.isPresent()){
+                return optional.get();
+            }
         }
         return null;
+    }
+
+    private <T extends Enum<T>> T getConstructorEnumValue(CKey key, T defaultValue,  T... defaultValues) {
+        int index = Arrays.asList(command.syntax()).indexOf(key) + 1;
+        if(args.length <= index) return defaultValue;
+        if(key.getCKeyClasses().getCommandSeparator().equals(CommandSeparator.NO_SEPARATOR)) {
+            Optional<T> optional = Arrays.stream(defaultValues).filter(e ->  e.name().equalsIgnoreCase(args[index])).findFirst();
+            if(optional.isPresent()){
+                return optional.get();
+            }
+        }
+        return defaultValue;
     }
 
     private <T> T getConstructor(CKey key, T defaultValue, Object... parameters) {
